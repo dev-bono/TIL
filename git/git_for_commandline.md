@@ -22,3 +22,4 @@ ex) git rm log/\*.log
 ```
 git commit 
 git commit --amend
+```
