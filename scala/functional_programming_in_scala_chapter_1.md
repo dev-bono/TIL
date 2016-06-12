@@ -68,9 +68,72 @@ def sqrtIter(guess: Double, x: Double): Double =
   else sqrtIter(improve(guess, x), x)
 
 def isGoodEnough(guess: Double, x: Double) = 
+  abs(guess * guess - x) / x < 0.001
+
+def improve(guess: Double, x: Double) = 
   (guess + x / guess) / 2
 
 def sqrt(x: Double) = sqrtIter(1.0, x)
 
 sqrt(2) // res1: Double = 1.4142156862745097
 ```
+
+## 1.6 Bolcks and Lexical Scope
+block을 잘 이용하면 불필요한 인자값을 호출하는 메서드에 넘길 필요가 없다.
+```
+def abs(x: Double) = if (x < 0) -x else x
+
+def sqrt(x: Double) = {
+  def sqrtIter(guess: Double): Double =
+    if (isGoodEnough(guess)) guess
+    else sqrtIter(improve(guess))
+
+  def isGoodEnough(guess: Double) =
+    abs(guess * guess - x) / x < 0.001
+
+  def improve(guess: Double) =
+    (guess + x / guess) / 2
+
+  sqrtIter(1.0)
+}
+
+sqrt(2) // 동일한 결과값
+```
+위의 예제를 보면, sqrt(x)에서 호출된 이후 내부적으로 sqrIter, isGoodEnough, improve를 호출하는데 모두 x 파라미터를 인자값으로 전달해준다. x 파라미터는 각 함수에서 불변하는 값이므로 위 세함수를 sqrt 함수의 내부함수로 재작성 한뒤 블록으로 감싸주면 x 파라미터는 블록 범위내에서 동일하게 적용되는 값이 되므로 각 함수에서 파라미터를 제거할 수 있다.
+
+### 세미콜론 문제
+스칼라에서 세미콜론은 optional
+그래서 아래와 같은 코드가 작성되면 한 줄로 인식되어야 할 코드를 스칼라 인터프리터가 두줄로 인식해버리는 문제가 있다. 
+```
+someLongExpression
++ someOtherExpression
+```
+해결 방법은 두가지가 있는데, 첫째는 괄호로 묶어주는 방법이고 두번째는 '+' 기호를 윗줄의 끝에 기입해주는 방법이다(아직 문장이 안끝났다는 표시). 
+```
+// solution 1
+(someLongExpression
++ someOtherExpression)
+
+// solution 2
+someLongExpression +
+someOtherExpression
+```
+
+1.7 Tail Recursion
+```
+def gcd(x: Int, y: Int): Int =
+  if (y == 0) x else gcd(y, x % y)
+
+def factorial(n: Int): Long =
+  if (n == 0) 1 else n * factorial(n-1)
+
+// 강의와 조금 다름
+def fac_tail_recursive(n: Int): Int = {
+  def loop(r: Int, i: Int): Int =
+    if (n == i) r*i
+    else
+      loop(r*i, i+1)
+  loop(1, 1)
+}
+```
+gcd 함수의 계산과정을 살펴보면, gcd 함수 자체가 다시 불리는 형태로 진행한다. 반면에 fatorial 함수는 4 * 3 * factorial(2)와 같이 계속해서 길어지므로, 저장해야 할 지역변수가 늘어나 stack frame을 재사용할 수 없다. 그래서 factorial을 fac_tail_recursive 함수처럼 함수 자신이 마지막으로 호출되는 형태로 변경해줄 필요가있다. 이를 Tail Recursion이라 부른다.
