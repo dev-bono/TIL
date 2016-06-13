@@ -40,4 +40,3 @@ git rebase -i HEAD~4
 ```
 git push origin :rebase-branch
 ```
-
