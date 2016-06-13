@@ -1,4 +1,25 @@
 ## 1.1 Programming Paradigms
+세 가지 프로그래밍 언어 패러다임
+* Inperative Programming Language (절차지향 프로그래밍 언어)
+* Functional Programming Language (함수형 프로그래밍 언어)
+* Logical Programming Language (논리형 프로그래밍 언어)
+
+튜터는 OOP는 세가지 언어에 직교하는 성질을 가지고 있기 때문에 새로운 패러다임이라 할 수 없다고 생각함
+절차적 프로그램은 폰 노이만 구조랑 비슷함
+절차적 프로그램은 규모가 커졌을 경우 word by word로 처리되는 문제 때문에 폰 노이만처럼 병목현상이 발생할 수 있다.
+그래서 collections, 다항식, strings 등과 같이 고수준의 추상화를 정의하는 진화된 다른 방법(theory)이 필요
+
+### What is Theory?
+* one or more data types
+* operations on thes types
+* laws that describe the relationships between values and operations
+즉, 여러개의 데이터 타입과 연산과 그 관계에 대한 규칙의 정의라 할 수 있다.
+
+절차적 언어는 함수나 특정 코드에 의해 상태값이 바뀔 수 있기 때문에 theory가 손상될수 있다. 이러한 문제를 해결하기 위해 함수형 언어가 등장하였다. 함수형 언어는 아래와 같은 특징을 가진다.
+
+* concentrate on defining theories for operators expressed as functions
+* avoid mutations
+* have powerful ways to abstract and compose functions
 
 
 ## 1.2 Elements of Programming
