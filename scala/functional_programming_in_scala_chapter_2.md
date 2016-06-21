@@ -302,9 +302,9 @@ new C(v1, ..., vm).f(w1, ..., wn)
 ^
 &
 < >
-= \!
+= !
 :
-\+ \-
-\* / %
++ -
+* / %
 (all other special characters)
 ```
