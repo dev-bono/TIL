@@ -268,7 +268,7 @@ class Rational(x: Int, y: Int) {
   require(y != 0, " denominator must be positive")	
   ...
 }
-
+```
 ## 2.7 Evaluation and Operators
 클래스와 메소드의 evalutaion 과정
 ```
