@@ -35,13 +35,13 @@ val t2 = t1 incl 4
 위에서 IntSet은 Empty와 NonEmpty클래스의 base class 이다. 구현체가 없는 incl 메소드와 contains 메소드는 각각 Empty와 NonEmpty 클래스에서 구현하게 된다.
 ```
 abstract class Base {
-	def foo = 1
-	def bar: Int
+  def foo = 1
+  def bar: Int
 }
 
 class Sub extends Base {
-	override def foo = 2
-	def bar = 3
+  override def foo = 2
+  def bar = 3
 }
 ```
 Base 클래스의 foo 메서드는 구현체가 있고 bar 메서드는 구현체가 없다. 구현체가 없는 bar 메서드 같은 경우에는 Sub 클래스에서 바로 구현해주면 되지만, 구현체가 없는 foo 메서드는 반드시 메서드 앞에 override 키워드를 붙여서 재정의 해야한다.(참고로 bar 메서드 앞에 override 키워드를 붙이는 것은 optional)
@@ -77,3 +77,134 @@ class NonEmpty(elem: Int, left: IntSet, right: IntSet) extends IntSet {
 #### 동적 바인딩
 메소드를 포함하는 object 타입은 런타임에 메소드가 실행된다.
  
+## 3.2 How Classes Are Organized
+
+#### Package
+자바의 패키지 지정 방식과 같다. 
+```
+package progfun.examples
+
+object Hello { ... }
+```
+위와 같은 패키지와 object가 있다면, progfun.examples.Hello와 같은 full qualified name으로 Hello 오브젝트에 접근 가능하다
+
+#### import
+```
+import week3.Rational           // imports just Rational
+import week3.{Rational, Hello}  // imports both Rational and Hello
+import week3._                  // import everything in package week3
+```
+import 하는 방법은 자바와 거의 비슷한데 몇가지 다른점이 있다면, 첫째로는 한줄에 여러개의 class or object를 호출하기 위해서 중괄호를 사용하는 방법이 있다. 그리고 특정 패키지의 모든 class 와 object를 가져오기 위해 '_'를 이용할 수 있다.
+
+스칼라 프로그램에서 자동으로 import되는 패키지 또는 obejct
+ All members of package scala
+ All members of package java.lang
+ All members of the singleton object scala.Predef
+
+```
+require       scala.Predef.require
+assert        scala.Predef.assert
+```
+
+#### Traits
+스칼라도 자바처럼 상속을 하나의 클래스에서만 받을 수 있다. 그렇기 때문에 자바와 동일하게 여러개의 슈퍼타입이 필요한 경우 traits 키워드를 이용하여 구현할 수 있다. 참고로 trait 키워드는 abstract class 와 동일하다.  
+
+```
+trait Planar {
+  def height: Int
+  def width: Int
+  def surface = height  width
+}
+
+class Square extends Shape with Planar with Movable ...
+```
+클래스와 오브젝트 traits 셋다 traits를 상속받을 수 있다. 그리고 interface 처럼 하나의 클래스가 여러개의 traits 상속이 가능하다. traits가 자바의 interface와 비슷해보이지만 field를 가질 수 있는 점과, 실제 구현 메서드를 가질 수 있는 점에서 더 강력하다 할 수 있다. 자바에도 추상클래스(abstract class)가 있지만, 추상클래스는 말그대로 클래스이기 때문에 인터페이스처럼 여러개를 구현하지는 못한다. 그렇기 때문에 스칼라의 trait가 좀 더 유연하게 사용될 수 있다. 대신 traits는 파라미터를 가질 수 없다는 단점이 있다.
+
+#### 스칼라 타입 클래스 구조 (Scala's Class Hierarchy)
+
+
+![스칼라 타입 클래스 구조](http://docs.scala-lang.org/resources/images/classhierarchy.img_assist_custom.png)
+
+
+출처 : <http://docs.scala-lang.org/tutorials/tour/unified-types.html>
+
+##### Any
+* 모든 타입의 가장 상위 타입, '==', '!=', 
+* 'equals', 'hashCode', 'toString'
+
+##### AnyRef
+* Any 클래스를 상속받는다. 
+* 모든 레퍼런스 타입(ex. List, String)의 기본 타입이다. 
+* java.lang.Object의 별칭이다.
+
+##### AnyVal
+* Any 클래스를 상속받는다.
+* 모든 primitive types(Int, Float, Char 등)의 베이스 타입이다
+
+##### Scala.Nothing
+* 모든 다른 AnyVal 타입의 subType이다. 
+* 값을 가지지 않는다. 
+* 함수가 비정상적으로 종료되거나 예외가 발생할 경우 Nothing을 리턴할 수 있다.
+* 비어있는 collection을 요소 타입으로서 존재 (ex. Set[Nothing])
+
+#### Null
+ The type of null is Null, null의 타입은 Null이라는 말
+ 모든 다른 AnyRef 타입의 subType이다.
+```
+val x = null          // x: Null
+val y: String = null  // y: String
+val z: Int = null     // error: type mismatch, 레퍼런스 타입만 적용
+```
+
+## 3.3 Polymorphism
+
+아래 두 Cons 클래스는 동일한 표현이다.
+클래스 파라미터에 value를 사용하는 것은, implementaion 해야할 함수를 파라미터에 직접 구현하는 것과 같다.
+```
+class Cons(val head: Int, val tail: IntList) extends IntList { ... }  
+
+// 즉, _head, _tail 은 쓰지 않는 이름
+class Cons(_head: Int, _tail: IntList) extends IntList {
+  val head = _head
+  val tail = _tail
+}
+```
+Cons 클래스와 List trait를 generic하게 구현한다
+```
+trait List[T] {
+  def isEmpty: Boolean
+  def head: T
+  def tail: List[T]
+}
+
+class Cons[T](val head: T, val tail: List[T]) extends List[T] {
+  def isEmpty = false
+}
+
+class Nil[T] extends List[T] {
+  def isEmpty: Boolean = true
+  def head: Nothing = throw new NoSuchElementException("Nil.head")
+  def tail: Nothing = throw new NoSuchElementException("Nil.tail")
+}
+```
+함수도 제네릭하게 구현할 수 있다.
+```
+def singleton[T](elem: T) = new Cons(elem, new Nil[T])
+
+singleton[Int](1)
+singleton[Boolean](true)
+
+// 아래와 같이 호출가능
+singleton(1)
+singleton(true)
+```
+마지막 두 줄과 같이 호출 가능한 이유는 스칼라 컴파일러가 함수 call이 발생하면 해당 함수의 파라미터 타입을 추론할 수 있기 때문이다.
+
+#### Polymorphism
+> Polymorphism means that a function type comes "in many forms".
+프로그램 측면에서 보면, 함수의 파라미터가 여러 타입으로 적용할 수 있고, 타입은 다양한 타입의 인스턴스를 가질 수 있다는 말이다.
+
+#### 다형성의 두가지 주요개념
+* subtyping : instance of a subclass can be passed to a base class
+* generics : instances of a function or class are created by type parameterization
+
