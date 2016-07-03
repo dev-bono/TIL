@@ -219,5 +219,21 @@ val empty: List[Nothing] = List()
 * List are immutable - the elements of a list cannot be changed
 * Lists are recursive, while arrays are flat
 
+또한 스칼라에서는 construction operation인 ::(cons라 부름, 지난주의 prepend 함수랑 동일하다)를 이용하여 좀더 간단하게 리스트를 만들 수 있다. cons는 right-associative 연산이기 때문에 우측에서부터 왼쪽으로 하나씩 붙여 나간다는 생각으로 사용하면 된다. 위의 리스트 들을 cons를 이용해서 작성해보면 다음과 같다.
+```
+fruit = "apples" :: ("oranges" :: ("pears" :: Nil))
+fruit = "apples" :: "oranges" :: "pears" :: Nil
 
+nums = 1 :: (2 :: (3 :: (4 :: Nil)))
+nums = 1 :: 2 :: 3 :: 4 :: Nil
+
+empty = Nil
+```
+right-associative 연산이기 때문에 실제 컴파일러는 위의 연산(nums)을 다음과 같이 해석한다.
+```
+nums = 1 :: 2 :: 3 :: 4 :: Nil
+Nils.::(4).::(3).::(2).::(1)
+```
+
+#### sorting Lists
 
