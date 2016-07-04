@@ -2,21 +2,85 @@
 
 > 퓨어 object-oriented 언어란 모든 value가 object라는 말인데, 그렇다면 스칼라가 퓨어 object-oriented language인가?
 
-일단은 primitive types라는 예외가 있기 때문에 아니라 할 수 있다. 그래서 pure object-oriented 하도록 만들기 위해서 scala.Boolean 대신 Boolean 클래스를 정의한다(자바의 래핑클래스(Integer 등)처럼)
+일단은 primitive types라는 예외가 있기 때문에 아니라 할 수 있다. 그래서 pure object-oriented 하도록 만들기 위해서 scala.Boolean 대신 커스텀으로 Boolean 클래스를 정의한다(자바의 래핑클래스(Integer 등)처럼)
 
-Boolean 클래스에서는 실제 스칼라 Boolean으로 사용할 수 있었던 연산을 모두 재정의해준다. 아래는 '<' 함수를 정의한 예제이다.
+Boolean 클래스에서는 실제 스칼라 Boolean으로 사용할 수 있었던 연산을 모두 재정의해준다. 
 ifThenElse는 if(cond) f1 else f2과 같다(여기서 f1, f2는 ifThenElse의 파라미터)
+아래는 '<' 함수를 정의한 예제이다.
 ```
 claass Boolean {
-	...
-	def < (x: Boolean): Boolean = ifThenElse(false, x)
+  ...
+  def < (x: Boolean): Boolean = ifThenElse(false, x)
  }
 ```
 
 
 ## 4.2 Functions as Objects
+스칼라에서는 function values는 오브젝트로 취급된다. 사실 function type A => B는 scala.Function1[A, B]의 축약 형태와 같다고 할수 있다.
+```
+package scala
+trait Function1[A, B] {
+  def aaply(x: A): B
+}
+```
+즉, 함수는 apply 메소드를 가진 오브젝트와 같다.
+익명함수의 경우에는 다음과 같이 확장될 수 있다.
+```
+(x: Int) => x * x
 
+// is expanded to
+{ class AnonFun extends Function1[Int, Int] {
+  def apply(x: Int) = x * x
+  }
+  new AnonFun
+}
 
+// shorter
+new FUnctino1[Int, Int] {
+  def apply(x: Int) = x * x
+}
+```
+그러니까 실제로 f(a, b) 라는 함수를 call 했을 때, f.apply(a, b)가 불리는 것과 같다는 말이다.
+예를 들면,
+```
+val f = (x: Int) => x * x
+f(7)
+
+val f = new Function[Int. Int] {
+  def apply(x: Int) = x * x
+}
+f.apply(7)
+```
+위에서 본것처럼 apply 메소드는 오브젝트 안에 있을 때 오브젝트 이름 그대로 호출할 수 있다. 지난번에 봤던 List를 예로 들어보면 아래와 같다.
+```
+trait List[T] {
+  def isEmpty: Boolean
+  def head: T
+  def tail: List[T]
+}
+
+class Cons[T](val head: T, val tail: List[T]) extends List[T] {
+  def isEmpty = false
+}
+
+class Nil[T] extends List[T] {
+  def isEmpty: Boolean = true
+  def head: Nothing = throw new NoSuchElementException("Nil.head")
+  def tail: Nothing = throw new NoSuchElementException("Nil.tail")
+}
+
+// List()
+object List {
+  def apply[T]: List[T] = new Nil
+  def apply[T](x: T): List[T] = new Cons(x, new Nil)
+  def apply[T](x1: T, x2: T): List[T] = new Cons(x1, new Cons(x2, new Nil))
+  
+  // objectd 이름 그대로 호출 가능, 파라미터가 맞는 apply 메소드를 알아서 찾아감
+  val a = List()
+  val b = List(1)
+  val c = List(2, 3)
+} 
+```
 
 ## 4.3 Subtyping and Generics
 
