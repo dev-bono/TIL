@@ -88,7 +88,7 @@ object List {
 
 #### Type Bounds
 > takes an IntSet
-> returns the IntSet itself if all tis elements are positive
+> returns the IntSet itself if all this elements are positive
 > throws an exception otherwise
 
 위의 세가지 조건을 충족시킬 수 있는 함수를 생각해보자.
@@ -114,7 +114,7 @@ def assertAllPos[S <: IntSet](r: S): S = ...
 이것의 의미는 S가 NonEmtpy와 IntSet 타입 사이의 모든 타입이 될 수 있다는 말과 같다.
 
 #### Covariance
-서브클래스의 인스턴스 컬렉션을 상위클래스의 컬렉션으로 보내는 것을 Covariance라고 한다.
+서브클래스의 인스턴스 컬렉션을 상위클래스의 컬렉션으로 보내는 것을 Covariance(공변성)라고 한다. 왜냐하면 subtyping 관계가 컬렉션에서도 그대로 적용되었기 때문이다.
 ```
 NonEmpty <: IntSet
 // 위가 성립된다면 아래도 성립
@@ -139,6 +139,10 @@ NonEmpty s = a[0]
 ```
 a는 NonEmpty 타입의 Array를 가리키는 포인터이다. 두번째 줄에서 IntSet Array b 에 a를 대입하였다. b가 실제로 카리키는 대상은 NonEmpty List지만, covariance 규칙에 의해 상위 타입의 컬렉션이 하위 타입의 컬렉션을 대신할 수 있다. 세번째 줄에서 b의 첫번째 item에 Empty 클래스를 대입하였다. 마지막으로 a의 첫번째 item을 NonEmpty 타입의 s에 대입하였다. b와 a 는 실제로 가리키는 대상이 같기 때문에 세번째 줄에서 b[0]에 들어간 Empty는 a[0]에서도 동일하게 작동한다. 그런데 마지막 줄에서 Empty 타입의 item 을 NonEmpty 타입에 할당하기 때문에 런타임 에러가 발생한다.
 
+#### Liskov Substitution Principle
+> If A <: B, then everything one can to do with a value of type B one should also be able to do with a value of type A
+리스코프 치환원칙은 타입 A와 B가 있을때 하나의 타입이 다른 하나의 서브타입이 될 수 있는 조건에 대해 말해준다.
+
 ```
 // in scala
 val a: Array[NonEmpty] = Array(new NonEmpty(1, Empty, Empty))
@@ -146,10 +150,15 @@ val b: Array[IntSet] = a
 b(0) = Empty
 val s: NonEmpty = a(0)
 ```
-스칼라의 경우에는 두번째 줄에서 컴파일 에러가 난다. 그 이유는 스칼라의 Array는 covariant하지 않기 때문이다.
-
+스칼라의 경우에는 두번째 줄에서 컴파일 에러가 난다. 그 이유는 스칼라의 Array는 covariant하지 않기 때문이다. (NonEmpty )
+```
+NonEmpty <: IntSet
+not Array[NonEmpty] <: Array[IntSet]
+```
 
 ## 4.4 Variance
+
+스칼라에서 List는 covariant, Array는 성립하지 않는다. 그 이유는 list의 경우에는 immutable한 컬렉션이고, Array는 mutable 하기 때문이다. 보통 mutation을 허용하는 타입은 covariant하지 않다.
 
 C[T]에서 A <: B인 경우 다음이 성립한다.
 B가 A의 수퍼타입이면서 C[B]가 C[A]의 수퍼타입인 경우에는 covariant, C[A]가 C[B]의 수퍼타입이면 contravariant
@@ -159,18 +168,89 @@ B가 A의 수퍼타입이면서 C[B]가 C[A]의 수퍼타입인 경우에는 cov
 * C[A]와 C[B] 둘다 다른것의 서브타입이 아니면 C는 nonvariant (class C[A])
 
 다음의 두 타입중 어떤 타입이 수퍼타입이고, 어떤 타입이 서브타입인가?
-결과를 얘기하자면, B가 A의 수퍼타입이다. 함수의 파라미터는 contravariant하고 함수의 리턴값은 covariant 하기 때문에 A <: B가 참이다.
+함수의 파라미터가 더 구체적인(서브타입) 타입이 들어 갔을때는 반드시 그 타입으로 인자가 넘어와야한다. type B를 보면 파라미터 타입이 IntSet의 서브타입인 NonEmpty이므로 인자가 반드시 NonEmpty 타입이어야 한다. 반면에 type A를 보면, 파라미터 타입이 IntSet이라 NonEmpty 포함 IntSet의 모든 서브타입이 들어 올 수 있다. 리턴타입은 NonEmpty이므로 IntSet이라 할 수 있다. 즉, A는 B의 규칙을 만족시킨다. 게다가 A는 파라미터에 추가로 Empty 같은 타입이 들어 올 수 있으므로, A가 B보다 더 확장된 형태이다. 
+그러므로, B가 A의 수퍼타입이다. 함수의 파라미터는 contravariant하고 함수의 리턴값은 covariant 하기 때문에 A <: B가 참이다.
 ```
 type A = IntSet => NonEmpty
 type B = NonEmpty => IntSet
 ```
-위의 내용을 요약하면 아래와 같다.
+위의 내용을 요약하면 아래와 같다. 
 ```
 If A2 <: A1 and B1 <: B2, then
   A1 => B1  <:  A2 => B2
 ```
+> Functions are contravariant in their argument type(s) and covariant in their result type.
 
 #### Variance Checks
+위에서 Array는 mutable한 속성 때문에 covariant하지 못하다는 문제를 살펴봤었다. mutable한 속성이라는 것은 update 가능하다는 말과 같은데, Array 클래스에서 update 함수의 파라미터의 타입이 어떤 문제를 가지고 있는지 살펴보자. 앞서서 covariant 타입은 함수의 result 타입에만 나타날 수 있다고 말했다.
+```
+class Array[+T] {
+  def update(x: T) ...
+}
+```
+그런데 위의 Array 클래스의 update 함수를 보면, covariant 타입 T가 파라미터에 쓰여졌기 때문에 Array는 covariant 하지 못
+한 컨테이너라 할 수 있겠다.
+
+그래서 앞서서 보았던(4.2) Function1은 사실 아래와 같은 형태이다.
+```
+package scala
+trait Function1[-T, +U] {
+  def apply(x: T): U
+} 
+```
+그렇다면 List의 경우는 어떨까?
+Nil, Cons 클래스의 경우로 살펴보자.
+```
+package week4
+
+trait List[+T] {
+  def isEmpty: Boolean
+  def head: T
+  def tail: List[T]
+}
+
+class Cons[T](val head: T, val tail: List[T]) extends List[T] {
+  def isEmpty = false
+}
+
+object Nil extends List[Nothing] {
+  def isEmpty: Boolean = true
+  def head: Nothing = throw new NoSuchElementException("Nil.head")
+  def tail: Nothing = throw new NoSuchElementException("Nil.tail")
+}
+
+// val x의 return 타입이 List[Nothing]을 상속받는 Nil object 이므로,
+// covariant 규칙에 의해 List[String]으로 리턴 타입을 지정할 수 있다.
+// List[Nothing] <: List[String]
+object test {
+  val x: List[String] = Nil
+}
+```
+Nil이 List[Nothing]을 상속하게 만들면 모든 리스트의 서브타입이 된다. 그리고 trait List[T]를 trait List[+T]로 바꿔서 covariant하게 만들어 준다. val x: List[String] = Nil을 입력하게 되면, Nil이 List[Nothing]을 상속받으므로 covariant하게 바뀐 List 속성에 의해서 Nothing 보다 상위 클래스인 String 타입으로 리턴 할 수 있게 되었다.
+
+List 클래스에 다음과 같은 prepend 메서드를 추가해보자.
+```
+def prepend(elem: T): List[T] = new Cons(eleml, this)
+```
+컴파일 에러가 난다. 그 이유는 타입 T가 covariant하기 때문에 파라미터에 사용하면 안된다. prepend 메서드가 새로운 리스트를 생성함해도 불구하고 문제가 생기는 이유는 prepend 메서드에 elem의 타입이 T이기 때문이다. 타입 T가 covariant하다면 반드시 result type에만 사용해야 한다.
+
+
+#### Prepend Violates LSP
+prepend 메서드가 왜 Liskov Substitution Principle을 위반했는지 알아보자
+xs의 타입이 List[IntSet]인 경우에는 문제가 없다.
+```
+xs.prepend(Empty)
+```
+하지만 ys의 타입이 List[NonEmpty]라고 했을 때는 문제가 있다.
+```
+ys.prepend(Empty)
+```
+NonEmpty 타입이 들어와야 할 자리에 Empty 타입이 들어왔으므로 타입에러가 발생한다. 그래서 이 경우에는 List[NonEmpty]는 List[IntSet]의 서브타입이 될 수 없다.
+
+하지만 prepend 메서드는 immutable list에 실제로 존재한다. 어떻게 이게 가능할까? 답은 lower bound에 있다. U >: T는 U가 T의 부모 타입이라는 말이다. 이렇게 되면, elem이 T보다 상위 타입이 오더라도 문제가 되지 않는다.
+```
+def prepend[U >: T](elem: U): List[U] = new Cons(elem, list)
+```
 
 
 ## 4.5 Decomposition
@@ -266,6 +346,60 @@ a * b + a * c = a * (b + 3)
 
 
 ## 4.6 Pattern Matching
+이전챕터에서 Decomposition을 시도한 몇가지 방법은 아래와 같다.
+
+* Classification and access methods: quadratic explosion
+* Type tests and casts: unsafe, low-level
+* Object-oriented decomposition: does not always work, need to touch all classes to add a new method.
+
+classification과 accessor 의 주 목적은 아래와 같다.
+* Which subclass was used?
+* What were the arguments of the constructor?
+
+보통 사용되는 new Sum(e1, e2)와 같은 형태의 생성자를 스칼라는 case class라는 문법을 통해서 자동으로 Pattern Matching 시켜준다. 
+```
+// 두개의 case class
+trait Expr
+case class Number(n: Int) extends Expr
+case class Sum(e1: 
+Expr, e2: Expr) extends Expr
+
+// 실제 apply 메서드의 형태
+// Number(1), Sum(2, 3)과 같이 호출될꺼다
+object Number {
+  def apply(n: Int) = new Number(n)
+}
+object Sum {
+  def apply(e1: Expr, e2: Expr) = new Sum(e1, e2)
+} 
+
+// eval 함수를 이용해서 패턴매칭, 
+// 파라미터 e가 Number냐 Sum이냐에 따라서 자동으로 선택되어 처리
+def eval(e: Expr): Int = e match {
+  case Number(n) => n
+  case Sum(e1, e2) => eval(e1) + eval(e2)
+}
+```
+
+#### Match Syntax rules
+* match is followed by a sequence of cases, pat => expr.
+* Each case associates an expression expr with a pattern pat.
+* A matchError exception is thrown if no pattern matches the value of the selector.
+
+패턴은 Number, Sum과 같은 contructor로 만들어지며, 인자(variables)는 반드시 소문자로 시작해야한다. 그리고 한 pattern 안에 같은 파라미터 문자를 쓰면 안된다. 상수는 null, true, false를 제외하고는 반드시 대문자로 시작해야한다. 마지막으로 wildcard pattern인 '_'은 해당 파라미터를 신경쓰지 않겠다는 것이다. 대체로 해당 case에서 사용되지 않는 파라미터에 '_'를 사용한다.
+
+eval 함수를 trait Expr에 넣어보자.
+```
+trait Expr {
+  def eval: Int = this match {
+    case Number(n) => n
+    case Sum(e1, e2) => e1.eval + e2.eval
+  }
+}
+```
+
+
+
 
 
 ## 4.7 Lists
@@ -301,3 +435,22 @@ Nils.::(4).::(3).::(2).::(1)
 
 #### sorting Lists
 
+재귀를 이용한 Insertion Sort
+```
+def isort(xs: List[Int]): List[Int] = {
+  xs match {
+    case Nil => List()
+    case y :: ys => insert(y, isort(ys))
+  }
+}
+
+def insert(x: Int, xs: List[Int]): List[Int] = {
+  xs match {
+    case Nil => List(x)
+    case y :: ys => {
+      if (x < y)  x :: xs
+      else y :: insert(x, ys)
+    }
+  }
+}
+```
