@@ -40,3 +40,8 @@ git rebase -i HEAD~4
 ```
 git push origin :rebase-branch
 ```
+
+### local tag 오리진 서버에 push 하기
+```
+git push origin 태그명
+```
