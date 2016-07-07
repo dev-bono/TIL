@@ -184,6 +184,7 @@ object mergesort {
 #### scala.math.Ordering[T]
 사실 ordering을 위한 스탠다드 라이브러리 클래스가 있다. 
 > scala.math.Ordering[T]
+
 그래서 lt 명령어를 parameterizing 하는 대신 Orderging 클래스로 parameterize 할 수 있다.
 ```
 def msort[T](xs: List[T])(ord: Ordering) = 
