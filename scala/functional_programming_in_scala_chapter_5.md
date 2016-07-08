@@ -318,5 +318,54 @@ res5: (List[Int], List[Int]) = (List(2),List(-4, 5, 7, 1))
 ```
 
 ## 5.5 Reductino of Lists
+5.4절에 이어 higr-order Function 패턴을 이용한 List 메서드에 대해서 계속 알아보도록 하자. 5.4에서 보았던 세가지 패턴 중에 마지막인 element를 결합하는 방법들에 대한 내용들이 되겠다. 
+```
+sum(List(x1, ..., xn))      = 0 + x1 + ... + xn
+product(List(x1, ..., xn))  = 1 * x1 * ... * xn
+```
+#### ReduceLeft
+각 요소를 더하거나 곱하는 sum과 product 메서드가 있다. 이를 ReduceLeft 메서드를 이용하여 구현해보도록하자. ReduceLeft 메서드는 아래와 같은 구조를 가진다.
+```
+List(x1, ..., xn) reduceLeft op = (...(x1 op x2) op ... ) op xn
 
+// 위의 구조를 이용하면 sum과 product는 아래와 같이 구현가능하다.
+def sum(xs: List[Int]) = (0 :: xs) reduceLeft ((x, y) => x + y) // or (_ + _)
+def product(xs: List[Int]) = (1 :: xs) reduceLeft ((x, y) => x * y) // or (_ * _)
+```
+
+#### FoldLeft
+foldLeft 함수는 reduceLeft 함수에 비해 좀더 일반적인 형태이다. foldLeft가 reduceLeft와 비슷하지만, foldLeft는 하나의 accumulator(z)를 가진다.
+구조는 아래와 같다.
+```
+(List(x1, ..., xn) foldLeft z)(op) = (...(z op x1) op ...) op xn
+```
+foldLeft로 sum과 product를 구현해보자
+```
+def sum(xs: List[Int]) = (xs foldLeft 0) (_ + _)
+def product(xs: List[Int]) = (xs foldLeft 1) (_ * _)
+```
+
+foldLeft와 reduceLeft는 List class에서 다음과 같이 구현된다.
+```
+abstract class List[T] { ...
+  def reduceLeft(op: (T, T) => T): T = this match {
+    case Nil => throw new Error("Nil.reduceLeft")
+    case x :: xs => (xs foldLeft x)(op)
+  }
+  def foldLeft[U](z: U)(op: (U, T) => U): U = this match {
+    case Nil => z
+    case x :: xs => (xs foldLeft op(z, x))(op)
+  }
+}
+```
+reduceLeft도 내부적으로는 foldLeft 메서드를 이용한다.
+그리고 reduceRight와 foldRight도 위의 두 메서드와 비슷한 구조로 동작한다. 대신 좌측이 아닌 우측(뒤)부터 reduce한다.
+
+#### Difference between FoldLeft and FoldRight
+foldLeft와 foldRight는 무엇이 다를까? 기본적으로 sum을 가지고 생각했을때, 왼쪽부터 더하는 것이나 오른쪽부터 더하는 것이나 결과는 동일하다. 하지만 어떤 경우에는 둘 중 하나만 적절할 때도 있다. 아래의 예제를 보자
+```
+def concat[T](xs: List[T], ys: List[T]): List[T] = (xs foldRight ys) (_ :: _)
+```
+위의 함수에서 foldRight를 foldLeft로 변경하면, 타입에러가 발생한다. 
+1 :: List(2)는 가능하지만 List(1) :: 2 는 불가능한 연산이기 때문이다.
 
