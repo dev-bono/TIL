@@ -369,3 +369,155 @@ def concat[T](xs: List[T], ys: List[T]): List[T] = (xs foldRight ys) (_ :: _)
 위의 함수에서 foldRight를 foldLeft로 변경하면, 타입에러가 발생한다. 
 1 :: List(2)는 가능하지만 List(1) :: 2 는 불가능한 연산이기 때문이다.
 
+
+## 5.6 Reasoning About Concat
+
+이번 챕터에서는 어떤 연산자(or 함수)가 정확히 참임을 증명할 수 있는지에 대해 알아보도록 한다.
+일반적으로 natural induction(자연 귀납?)에 의해 증명하는 방법의 예는 다음과 같다. 
+
+* P(n)이 모든 n >= b 에대해서
+* P(b)가 참이다. (base case)
+* 이때, 모든 n >= b 에 대해서 P(n)이 참이면, P(n + 1)도 참이다.
+
+#### Referential Transparency (참조 투명성)
+순수한 함수형 프로그램에서는 사이드 이펙트가 없기 때문에, reduction steps가 어떤 부분에 대해서도 동일하게 적용된다. 이를 Referential Transparency(참조 투명성)이라 한다.
+
+structural induction은 natural induction과 비슷하다. 
+structural induction은 다음과 같이 동작한다.
+
+* P(xs)이 모든 리스트 xs에 대해서 
+* P(Nil)이 hold 된다면
+* 리스트 xs와 어떤 element x에 대해서 P(xs)가 hold 되다면, P(x :: xs) 또한 hold 된다.
+
+이제 concat 함수를 다시 살펴보자
+
+```
+def concat[T](xs: List[T], ys: List[T]) = xs match {
+	case List() => ys
+	case x :: xs1 => x :: concat(xs1, ys)
+}
+```
+그리고 다음의 수식을 structural induction으로 증명해보자
+```
+(xs ++ ys) ++ zs = xs ++ (ys ++ zs)
+// ++(concat) 연산자의 두가지 정리를 참고한다
+// Nil ++ ys = ys
+// (x :: xs1) ++ ys = x :: (xs1 ++ ys)
+```
+우선 xs에 Nil이 들어갈 때인 P(Nil)을 살펴보자
+```
+// left 
+(Nil ++ ys) ++ zs
+= ys ++ zs 			// by 1st clause of ++
+
+// right
+Nil ++ (ys ++ zs)
+= ys ++ zs			// by 1st clause of ++
+```
+다음은 xs 대신에 induction step인 'x :: xs'를 넣어보자
+// left
+((x :: xs) ++ ys) + zs
+= (x :: (xs ++ ys)) ++ zs      // by 2st clause of ++
+= x :: ((xs ++ ys) ++ zs)      // by 2st clause of ++
+= x :: (xs ++ (ys ++ zs))	   // by induction hypothesis	
+// right
+(x :: xs) ++ (ys ++ zs)
+= x :: (xs ++ (ys ++ zs))	   // by 2st clause of ++
+```
+좌변과 우변이 같으므로 함수 P는 증명됨
+
+
+## 5.7 A Larger Equational Proof on Lists
+좀더 까다로운 function인 reverse에 대해서 알아보자
+다음의 두가지 amenable한 사실을 가지고 그 아래의 식을 증명해보자
+```
+(1) Nil.reverse = Nil 							// 1st clause
+(2) (x :: xs).reverse = xs.reverse ++ List(x)   // 2nd clause
+
+// 다음을 증명
+xs.reverse.reverse = xs
+```
+base case는 단순하다
+```
+Nil.reverse.reverse
+= Nil.reverse
+= Nil
+```
+이번엔 reduction step이다.
+```
+// left
+(x :: xs).reverse.reverse
+= (xs.reverse ++ List(x)).reverse 		// by 2nd clause of reverse
+
+// right
+x :: xs
+= x :: xs.reverse.reverse 			// by induction hypothesis (가설에 의해)
+```
+두 개를 합쳐보면,
+```
+(xs.reverse ++ List(x)).reverse = x :: xs.reverse.reverse
+```
+직접적으로 induction이 불가하므로, 동일한 연산을 일반화 시켜보자
+여기서는 xs.reverse를 ys로 치환하도록 하자. 그럼 수식이 아래와 같이 바뀐다.
+```
+(ys ++ List(x)).reverse = x :: ys.reverse
+```
+그럼 이제 두번째 induction인 ys를 증명하면 동일함을 입증할 수 있겠다.
+우선 base case 부터 살펴보자
+```
+// left
+(Nil ++ List(x)).reverse
+= List(x).reverse 			// by 1st clause of ++
+= (x :: Nil).reverse 		// by definition of List
+= Nil.reverse ++ List(x)
+= Nil ++ (x :: Nil)			// by 2nd clause of reverse
+= x :: Nil 					// by 1st clause of ++
+= x :: Nil.reverse   		// by 1st clause of reverse
+```
+결과는 우변의 ys에 Nil을 집어넣었을 때와 동일한 결과과 도출되었으므로 base case를 증명되었다. 이제 reduction step으로 가보자
+``` 
+// left
+((y :: ys) ++ List(x)).reverse
+= (y :: (ys ++ List(x))).reverse 		// by 2nd clause of ++
+= (ys ++ List(x)).reverse ++ List(y)	// by 2nd clause reverse
+= (x :: ys.reverse) ++ List(y)			// by the induction hypothesis
+= x :: (ys.reverse ++ List(y))			// by 1st clause of ++
+= x :: (y :: ys).reverse 				// by 2nd clause of reverse
+
+// right
+x :: (y :: ys).reverse
+```
+좌변과 우변이 동일하므로 증명되었다.
+
+#### Exercise
+```
+(xs ++ ys) map f = (xs map f) ++ (ys map f)
+
+Nil map f = Nil
+(x :: xs) map f = f(x) :: (xs map f)
+```
+base case..
+```
+// left
+(Nil ++ ys) map f
+= ys map f
+
+// right
+(Nil map f) ++ (ys map f)
+= Nil ++ (ys map f)
+= ys map f
+```
+reduction step
+```
+// left
+((x :: xs) ++ ys) map f
+= (x :: (xs ++ ys)) map f
+= f(x) :: ((xs ++ ys) map f)
+= f(x) :: ((xs map f) ++ (ys map f))
+
+// right
+((x :: xs) map f) ++ (ys map f)
+= (f(x) :: (xs map f)) ++ (ys map f)
+= f(x) :: ((xs map f) ++ (ys map f))
+```
+base case, reduction step 모두 좌변과 우변이 같으므로 같음이 증명되었다.
