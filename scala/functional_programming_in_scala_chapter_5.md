@@ -415,6 +415,7 @@ Nil ++ (ys ++ zs)
 = ys ++ zs			// by 1st clause of ++
 ```
 다음은 xs 대신에 induction step인 'x :: xs'를 넣어보자
+```
 // left
 ((x :: xs) ++ ys) + zs
 = (x :: (xs ++ ys)) ++ zs      // by 2st clause of ++
