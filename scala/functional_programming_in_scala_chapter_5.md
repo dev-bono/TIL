@@ -45,7 +45,7 @@ def concat[T](xs: List[T], ys: List[T]) = xs match {
   case z :: zs => z :: concat(zs, ys)	
 }
 ```
-복잡도를 |xs|라고 표기하던데 이건 뭘까??
+복잡도는 |xs|, 즉 xs 의 길이가 된다.
 다음은 reverse
 ```
 def reverse[T](xs: List[T]): List[T] = xs match {
@@ -125,7 +125,6 @@ object mergesort {
     val n = xs.length/2
     if (n == 0) xs
     else {
-      // merge 메서드는 앞으로 더 개선해 나갈 예정임
       def merge(xs: List[T], ys: List[T]): List[T] = (xs, ys) match {
         case (Nil, ys) => ys
         case (xs, Nil) => xs
@@ -158,7 +157,6 @@ object mergesort {
     val n = xs.length/2
     if (n == 0) xs
     else {
-      // merge 메서드는 앞으로 더 개선해 나갈 예정임
       def merge(xs: List[T], ys: List[T]): List[T] = (xs, ys) match {
         case (Nil, ys) => ys
         case (xs, Nil) => xs
@@ -209,11 +207,11 @@ def msort[T](xs: List[T])(implicit ord: Ordering) =
 val nums = List(2, -4, 5, 7, 1)
 msort(nums)
 ```
+더 간결해졌다. 
 
 #### Rules for Implicit Parameters
-더 간결해졌다. 
 타입이 T인 implicit 파라미터가 있을때, 컴파일러는 
-> (1) implicit이 쓰인 파라미터에 (2) T와 호환되는 타입을 가지고 (3) function call에서 보이거나 T와 관련된 companion 오브젝트에서 
+> (1) implicit이 쓰인 파라미터에 (2) T와 호환되는 타입을 가지고 (3) function call에서 보이거나 T와 관련된 companion 오브젝트(클래스와 객체 이름이 같은 오브젝트)에서 
 single implicit definition을 찾는다. 즉, Ordering[Int]가 함수 call의 파라미터로 존재하지 않지만, implicit으로 처리되어 어딘가에 존재하게 된다.
 
 
