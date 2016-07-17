@@ -187,3 +187,103 @@ def scalarProduct(xs: Vector[Double], ys: Vector[Double]): Double =
 따로 필터링할 조건이 없으므로 모든 요소에 대해서 적용한다.
 
 
+## 6.3 Combinatorial Search Example
+
+
+
+## 6.4 Maps
+
+
+
+## 6.5 Putting the Pieces Together
+
+전화번호를 문자로 바꾸는 예제를 살펴보자.
+참고로 해당 예제는 파이썬과 같은 스크립트 언어에서는 100라인 정도, 그외에 일반적 목적의 프로그래밍 언어에서는 200~300라인정도의 코드가 나왔다고 한다.
+
+```
+val mnemonics = Map(
+       '2' -> "ABC", '3' -> "DEF", '4' => "GHI", '5' -> "JKL", 
+       '6' -> "MNO", '7' -> "PQRS", '8' -> "TUV", '9' -> "WXYZ")
+```
+
+위와 같이 각 번호가 몇개의 문자열로 매핑되어 있다. 해당 숫자가 나왔을때 매핑된 문자열 중에 하나의 문자를 선택해서 출력해준다는 얘기다.
+
+예를 들어 "7225247386"를 convert해보면 그 중 하나가 "SCALAISFUN"(Scala is fun)이 된다.
+
+전체코드는 다음과 같다.
+
+```
+val in = Source.fromURL("http://lamp.epfl.ch/files/content/sites/lamp/files/teaching/progfun/linuxwords.txt")
+val words = in.getLines.toList filter (word => word forall (chr => chr.isLetter))
+
+val mnem = Map(
+	'2' -> "ABC", '3' -> "DEF", '4' -> "GHI", '5' -> "JKL",
+	'6' -> "MNO", '7' -> "PQRS", '8' -> "TUV", '9' -> "WXYZ")
+
+val charCode: Map[Char, Char] =
+  for ((digit, str) <- mnem; ltr <- str) yield ltr -> digit
+
+/**
+ * 파라미터로 들어온 문자열을 charCode로 변경함
+ * @param word
+ * @return
+ */
+def wordCode(word: String): String =
+  word.toUpperCase map charCode
+
+  wordCode("Java")  // res0: String = 5282
+
+/**
+ * A map form digit strings to the words that represent them,
+ * e,g. "5282" -> List("Java", "Kata", "Lava", ...)
+ * Note: A missing number should map to the empty set, e,g. "11111" -> List()
+ */
+val wordsForNum: Map[String, Seq[String]] =
+  words groupBy wordCode withDefaultValue Seq()
+
+/**
+ * Return all ways to encode a number as a list of words
+ */
+def encode(number: String): Set[List[String]] =
+  if (number.isEmpty) Set(List())
+  // 1 to number.length는 IndexedReq 타입이므로 Set 타입으로 변경해준다
+  else {
+    for {
+      split <- 1 to number.length
+      word <- wordsForNum(number take split)
+      rest <- encode(number drop split)
+    } yield word :: rest
+  }.toSet
+
+encode("7225247386")
+
+def translate(number: String): Set[String] =
+  encode(number) map(_ mkString " ")
+
+translate("7225247386")
+```  
+ 
+지금까지 살펴본 스칼라 collection은 아래와 같이 정리 할 수 있다.
+* easy to use: few steps to do the job.
+* concise: one word replaces a whole loop.
+* safe: type checker is really good at catching errors.
+* fast: collection ops art tuned, can be parallelized.
+* universal: one vocabulary to work on all kinds of collections.
+
+
+
+List(('a', 2), ('b', 2))
+
+(c, count) = ('a', 2)
+i = 1
+일단 a가 추출됐으니
+
+
+
+
+
+
+
+
+
+
