@@ -189,9 +189,237 @@ def scalarProduct(xs: Vector[Double], ys: Vector[Double]): Double =
 
 ## 6.3 Combinatorial Search Example
 
+이번 챕터에서는 Set에 대해 알아보자.
+Set도 Seq와 마찬가지로 Iterable의 subclass다. 그래서 Seq에서 사용하는 대부분의 연산(map, filter 등)을 Set에서도 동일하게 사용할 수 있다.
+
+#### Sets vs Sequences
+* Set은 unordered하다. 
+* Set은 중복되는 element를 가질 수 없다.
+* Set의 fundamental operation은 요소가 해당 Set에 포함되는지 확인하는 contains다.
+
+#### Example: N-Queens
+예제를 살펴보자.
+체스보드에 서로 위협이 되지 않는 8개의 퀸을 놓는 방법을 찾는 문제이다. 다르게 말하면 같은 row, column, diagonal에 둘 수 없는 문제와 같다.
+
+알고리즘을 살펴보자.
+* 사이즈 n인 보드에 k-1개의 퀸이 놓여진 모든 솔루션 추출
+* 각 솔루션을 0에서 n-1까지의 columns 숫자로 구성된 리스트로 변환
+* 리스트의 첫번째 요소는 k-1번째 row가 될 것이고, k-2, k-3 ...의 퀸을 붙여나간다.
+* 각 솔루션의 하나의 element와 함께 set of lists로 만들어진다.
+* kth 퀸을 놓아 가능한 모든 솔루션을 만들어낸다.
+
+```
+def queens(n: Int): Set[List[Int]] = {
+  def placeQueens(k: Int): Set[List[Int]] =
+    if (k == 0) Set(List())
+     else
+      for {
+        queens <- placeQueens(k - 1)
+        col <- 0 until n
+        if isSafe(col, queens)
+      } yield col :: queens
+
+  placeQueens(n)
+}
+```
+
+기본적인 뼈대는 위와 같다. placeQueens 함수를 재귀호출하여, 이전 단계의 퀸 리스트들을 이용해 다음 퀸들을 배치하는 형태다. 한 depth씩 내려가다보면 마지막에는 빈 셋에 0에서 n까지 각각 배치될것이다. 그리고 1개의 퀸이 배치된 list들에다 하나씩 추가해가면 마지막에는 모든 퀸이 놓인 체스판이 완성될 것이다.
+
+```
+def isSafe(col: Int, queens: List[Int]): Boolean = {
+  val row = queens.length
+  val queensWithRow = (row -1 to 0 by -1) zip queens
+  queensWithRow forall {
+    case (r, c) => col != c && math.abs(col - c) != row - r
+  }
+}
+```
+
+기존 퀸 리스트에 새로운 퀸을 추가할 때 안전한지 검사하는 isSafe 함수다. case 부분만 유심히 보면 되는데, 각은 column에 속하지 않으면서 대각선에 위치하지 않으면 safe하다고 판단하고 퀸을 추가한다. 대각선상에 있는지는 컬럼의 차이와 행의 차이로 판단한다.
+
+```
+def show(queens: List[Int]) = {
+  val lines =
+    for (col <- queens)
+    yield Vector.fill(queens.length)("* ").updated(col, "X ").mkString
+  "\n" + (lines mkString "\n")
+}
+
+(queens(8) take 3 map show) mkString "\n"
+
+```
+마지막은 리스트들로 되어 있는 퀸들을 실제 체스판에 올려놓은 것 처럼 출력해주는 show 함수를 이용한다. 
+결과는 아래와 같다.
+
+```
+res0: String = 
+* * X * * * * * 
+X * * * * * * * 
+* * * * * * X * 
+* * * * X * * * 
+* * * * * * * X 
+* X * * * * * * 
+* * * X * * * * 
+* * * * * X * * 
+
+* * * * * X * * 
+* * X * * * * * 
+X * * * * * * * 
+* * * * * * * X 
+* * * X * * * * 
+* X * * * * * * 
+* * * * * * X * 
+* * * * X * * * 
+
+* * * * X * * * 
+* X * * * * * * 
+* * * * * * * X 
+X * * * * * * * 
+* * * X * * * * 
+* * * * * * X * 
+* * X * * * * * 
+* * * * * X * * 
+```
 
 
 ## 6.4 Maps
+
+Map에 대해서 알아보자.
+Map은 다른 언어에서와 동일하게 Map[Key, Value]의 쌍으로 이루어져있다. 이때 Key, Value는 숫자나 문자 등 어떤 타입이든 가능하다.
+또한 Map[Key, Value]는 Key => Value의 함수 타입으로 확장 가능하다. 즉, Key 파라미터를 이용하면 Value를 구할 수 있다는 말과 같다.
+```
+// key를 이용해 value를 가져올때
+capitalOfCountry("andorra") 	// exception 발생
+
+// 대신에 get을 사용한다.
+capitalOfCountry get "andorra"  // None
+```
+
+#### Option Type
+Option은 covariant 하기 때문에 Option[A] > Option[Nothing]이다. 즉 None
+
+```
+trait Option[+A]
+case class Some[+A](value: A) extend Option[A]
+object None extend Option[Nothing]
+```
+
+패턴 매칭을 이용하면 아래와 같이 나타낼 수 있다.
+
+```
+def showCapital(country: String) = capitalOfCountry.get(country) match {
+	case Some(capital) => capital
+	case None => "missing data"
+}
+```
+
+#### Sorted and GroupBy
+sql 쿼리의 opertaion을 사용해보자.
+
+```
+// sorted
+val fruit = List("apple", "pear", "orange", "pineapple")
+fruit.sortWith (_.length < _.length)	// List("pear", "apple", "orange", "pineapple")
+fruit.sorted 		// List("apple", "orange", "pear", "pineapple")
+			
+// groupBy
+fruit groupBy (_.head) 		
+// Map(p -> List(pear, pineapple)),
+//     a -> List(apple),
+//     o -> List(orange))	
+```
+groubBy 명령은 식별 함수 f에 따라 collection의 map을 만든다.
+
+#### Polynoial Example
+from exponents to coefficient 방식으로 map을 만든다.
+
+```
+class Poly(val terms: Map[Int, Double]) {
+  def + (other: Poly) = new Poly(terms ++ other.terms)
+  override def toString =
+    (for ((exp, coeff) <- terms.toList.sorted.reverse) yield coeff+"x^"+exp) mkString " + "
+}
+
+val p1 = new Poly(Map(1 -> 2.0, 3 -> 4.0, 5 -> 6.2))
+val p2 = new Poly(Map(0 -> 3.0, 3 -> 7.0))
+p1 + p2
+```
+
+두 다항식을 더하는 함수를 작성해보자. 양쪽 다항식에 exponents가 같은 coefficient 끼리 더해주고 나머지 exponents들을 합쳐주면 두 다항식의 합이 완성된다. 일단 말은 어렵지 않다.
+하지만 위의 식은 아래처럼 잘못된 결과가 도출된다.
+
+```
+p1: Poly = 6.2x^5 + 4.0x^3 + 2.0x^1
+p2: Poly = 7.0x^3 + 3.0x^0
+res0: Poly = 6.2x^5 + 7.0x^3 + 2.0x^1 + 3.0x^0
+```
+
+왜 그럴까??
+맵끼리 concatenating 할때는 아마 같은 키의 value를 합치는게 아니라 뒤에 나오는 map의 key의 value로 대체하기 때문에 이렇게 나오는 것이다.
+다음과 같이 바꿔보자.
+
+```
+def + (other: Poly) = new Poly(terms ++ (other.terms map adjust))
+def adjust(term: (Int, Double)): (Int, Double) = {
+  val (exp, coeff) = term
+  terms get exp match {
+    case Some(coeff1) => exp -> (coeff + coeff1)
+    case None => exp -> coeff
+  }
+}
+```
+
+뒤에 오는 other에 adjust 함수를 매핑해보자.
+adjust 함수는 other의 term 하나를 뽑아다가 terms에 해당 exponent가 있는지 확인하고 있으면 terms와 other(term)의 coefficient를 더해준다. 만약 없다면, othe의 coeff를 그대로 리턴한다.
+결과를 보자. 
+
+```
+p1: Poly = 6.2x^5 + 4.0x^3 + 2.0x^1
+p2: Poly = 7.0x^3 + 3.0x^0
+res0: Poly = 6.2x^5 + 11.0x^3 + 2.0x^1 + 3.0x^0
+```
+
+#### Default Values 
+심플한 방법이 있었다.
+withDefaultValue operation을 이용하면 위의 함수를 좀더 간단하게 만들 수 있다.
+withDefaultValue를 이용해 좀더 개선해보자.
+
+```
+class Poly(terms0: Map[Int, Double]) {
+  def this(bindings: (Int, Double)*) = this(bindings.toMap)
+  val terms = terms0 withDefaultValue 0.0
+  def + (other: Poly) = new Poly(terms ++ (other.terms map adjust))
+  def adjust(term: (Int, Double)): (Int, Double) = {
+    val (exp, coeff) = term
+    exp -> (coeff + terms(exp))
+  }
+
+  override def toString =
+    (for ((exp, coeff) <- terms.toList.sorted.reverse) yield coeff+"x^"+exp) mkString " + "
+}
+
+val p1 = new Poly(1 -> 2.0, 3 -> 4.0, 5 -> 6.2)
+val p2 = new Poly(0 -> 3.0, 3 -> 7.0)
+p1 + p2
+p1.terms(8)
+```
+크게 두가지가 바뀌었다.
+첫째는 Poly 클래스의 parameter에 default value를 적용해주어 adjust에서 패턴매칭하는 수고로움을 줄여 주었다. (exp -> (coeff + terms(exp)))
+그리고 둘째는 새로운 Poly를 생성할 때, Map 타입을 지정해 주지 않아도, 생성자에서 (Int, Double)이 sequencial하게 들어오면 이를 Map으로 바꿔주도록 하였다. 
+
+#### Exercise
+위에서 보았던 '++' 연산과 foldLeft를 이용한 연산중 어느것이 더 효율적일까? 
+
+```
+def + (other: Poly) =
+  new Poly((other.terms foldLeft terms)(addTerm))
+
+def addTerm(terms: Map[Int, Double], term: (Int, Double)): Map[Int, Double] = {
+  val (exp, coeff) = term
+  terms + (exp -> (coeff + terms(exp)))
+}
+```
+fold를 이용하면 위에서처럼 Map을 생성하여 각 exponent를 비교해서 값을 넣는게 아니라 기존부터 있던 terms에다 즉각적으로 추가하기 때문에 ++보다 더 효율적이라 할 수 있다.
 
 
 
@@ -269,21 +497,3 @@ translate("7225247386")
 * safe: type checker is really good at catching errors.
 * fast: collection ops art tuned, can be parallelized.
 * universal: one vocabulary to work on all kinds of collections.
-
-
-
-List(('a', 2), ('b', 2))
-
-(c, count) = ('a', 2)
-i = 1
-일단 a가 추출됐으니
-
-
-
-
-
-
-
-
-
-
