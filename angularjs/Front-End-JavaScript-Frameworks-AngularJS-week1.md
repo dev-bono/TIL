@@ -131,3 +131,74 @@ Angular 스코프에 맞게 value가 평가된다.
 <p>6 + 5 = {{ 6 + 5 }}</p>
 <h2>{{ dish.name }}</h2>
 ```
+
+
+## Models, Views and Controllers
+
+### The Model View Controller Framework
+
+> Design pattern is ell-documented solution to a recurring problem
+
+디자인 패턴은 비슷하고 반복되는 문제를 매번 똑같이 구현하는 것이 아니라 재사용 가능하도록 만들어진 일종의 솔루션을 말한다.
+
+#### MVC
+
+MVC는 소프트웨어 엔지니어링 구조에서 가장 대표적인 디자인 패턴이다. M(Model), V(View), C(Controller) 세가지 영역으로 나누어져있고, 각 영역은 독립적으로 존재한다. 
+
+* Model : 애플리케이션에서 도메인의 상태나 도메인 로직을 구현하는 영역이다. 여기서 말하는 도메인은 일반 개발 영역에서 말하는 것과 마찬가지로 소프트웨어가 다루는 특정 활동이나 지식의 범주를 뜻한다(표현이 조금 어렵다). 웹 어플리케이션단에서 보면 model은 request 요청에 대한 상태 변화에 반응하여 특정 도메인의 행위나 상태를 관리한다고 볼 수 있다. 그리고 대게 모델의 변화는 컨트롤러에 의해 발생한다.
+
+* View : 사용자에게 보여지는 영역이다. view는 유저와 상호작용을 위해 form에 모델정보를 redering 한다. 하나의 model로 서로 다른 목적의 뷰를 만들수도 있다.  
+
+* Controller : View와 모델 사이를 중재하는 역할을 한다. 일반적으로 컨트롤러는 유저의 input을 받아서 모델의 상태변화를 만들어낸다. 그렇기 때문에 컨트롤러는 결과적으로 모델의 변화를 이끌어 낸다고 할 수 있다. 
+
+#### MVVM (Model View View-Model)
+
+MVC 패턴의 파생된 형태중 하나인 MVVM은 Model, View, View-Model로 구성된다. 컨트롤러에 들어갈 비즈니스 로직이 모델이 있으며 View-Model과 View 사이에서 데이터 바인딩이 이루어진다.  
+
+### Angular Modules and Controllers
+
+일반적으로 Angular도 MVC 패턴을 따르고 있다고 할 수 있지만, 어떤 사람들은 Angular가 MVVM이 적합하다고도 한다. 또한 많은 사람들은 모델(M)과 뷰(V), 그리고 그 사이는 무엇이든 상관없다는 MVW(model-view-whatever)로 간단히 부르기도 한다.
+
+#### Angular Modules
+
+Angular Modules은 다음처럼 스크립트 태그안에 정의한다. angular.module 메서드는 두개의 파라미터를 가지는데, 첫번째는 ngApp 속성에 정의된 이름이고 두번째는 array인데 나중에 설명할 것이다. 아래같은 경우 ngApp이 html 태그에 선언되어 있으므로 아래의 모듈에서 현재 페이지 모두를 관리 할 수 있게 된다.
+
+```
+<html ngApp="confusionApp">
+
+...
+
+<body>
+
+...
+
+	<script>
+		var app = angular.module('confusionApp',[]);
+	</script>
+
+</body>
+
+</html>
+```
+
+#### Angular Controller
+
+Angular 컨트롤러는 특정 태그의 ng-controller 속성으로 선언된다.
+
+```
+<div class="row row-content" ng-controller="menuController as menuCtrl">
+
+</div>
+
+<script>
+var app = angular.module('confusionApp', []);
+
+app.controller('menuController', function() {
+	var dishes = [item, ... ];
+	this.dishes = dishes;
+});
+
+</script>
+```
+
+모듈과 컨트롤러는 위와 같이 구현할 수 있다. 이전에 보았던 ng-init directive는 HTML 속성으로 직접 넣어줘야하지만, 컨트롤러를 사용하면 해당 태그(여기서는 div) 내부의 데이터를 자바스크립트 코드로 컨트롤할 수 있게 된다. 컨트롤러의 두번째 파라미터인 익명함수 마지막에 __this.dishes = dishes__ 부분은 아마도 div 태그 내에서 사용가능한 dishes를 정의해주기 위해 자바스크립트 오브젝트인 dishes를 this.dishes에 할당해준게 아닌가 생각된다.
