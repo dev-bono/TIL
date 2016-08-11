@@ -133,6 +133,7 @@ Angular 스코프에 맞게 value가 평가된다.
 ```
 
 
+
 ## Models, Views and Controllers
 
 ### The Model View Controller Framework
@@ -202,3 +203,4 @@ app.controller('menuController', function() {
 ```
 
 모듈과 컨트롤러는 위와 같이 구현할 수 있다. 이전에 보았던 ng-init directive는 HTML 속성으로 직접 넣어줘야하지만, 컨트롤러를 사용하면 해당 태그(여기서는 div) 내부의 데이터를 자바스크립트 코드로 컨트롤할 수 있게 된다. 컨트롤러의 두번째 파라미터인 익명함수 마지막에 __this.dishes = dishes__ 부분은 아마도 div 태그 내에서 사용가능한 dishes를 정의해주기 위해 자바스크립트 오브젝트인 dishes를 this.dishes에 할당해준게 아닌가 생각된다.
+
