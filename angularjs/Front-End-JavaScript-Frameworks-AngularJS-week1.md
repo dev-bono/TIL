@@ -204,3 +204,201 @@ app.controller('menuController', function() {
 
 모듈과 컨트롤러는 위와 같이 구현할 수 있다. 이전에 보았던 ng-init directive는 HTML 속성으로 직접 넣어줘야하지만, 컨트롤러를 사용하면 해당 태그(여기서는 div) 내부의 데이터를 자바스크립트 코드로 컨트롤할 수 있게 된다. 컨트롤러의 두번째 파라미터인 익명함수 마지막에 __this.dishes = dishes__ 부분은 아마도 div 태그 내에서 사용가능한 dishes를 정의해주기 위해 자바스크립트 오브젝트인 dishes를 this.dishes에 할당해준게 아닌가 생각된다.
 
+
+
+## Angular Filters
+
+필터는 서버사이드 또는 클라이언트에서 만들어진 data를 end user에게 잘 표현하기 위한 수단으로 사용된다. 필터는 기반 데이터를 바꿀 수는 없으며 view templates, controllers, services 등에서 사용된다. AngularJS는 기본적으로 빌트인 필터를 여러개 제공하고 있고, 개발자 필요에 따라 커스텀 필터를 만들어 사용할 수 있다.
+
+```
+<div class="media-body">
+	<h2 class="media-headgin">{{dish.name}}
+		<span class="label label-danger label-xs">{{dish.label}}</span>
+		<!-- currency 필터는 price에 $를 붙여준다.-->
+		<span class="badge">{{dish.price | currency}}</span>
+	</h2>
+	<p>{{dish.description}}</p>
+</div>
+```
+
+#### Angluar의 Built-in Filters
+
+* uppercase / lowercase : converts the text
+* currency : $를 붙여준다.
+* date : 날짜 포맷을 변경한다.
+* filter : 특정 조건에 맞게 array의 서브셋을 리턴한다.
+* orderBy : 조건에 맞게 정렬한다. 
+* json, limitTo 등도 있다.
+
+```
+<!-- filter 예제, HTML 코드 -->
+<li class="media" ng-repeat="dish in menuCtrl.dishes | filter:menuCtrl.filtText">...</li>
+
+<!-- javascript 코드 -->
+var filtText = "";
+
+this.select = function(setTab) {
+	this.tab = setTab;
+	if (setTab === 2)
+		this.filtText = "appetizer"
+	else if (setTab === 3)
+		this.filtText = "mains"
+	else if (setTab === 4)
+		this.filtText = "dessert"
+	else
+		this.filtText = ""
+}
+```
+
+위와 같이 HTML과 javascript 코드를 작성한다.
+그리고 특정 탭을 만들어 각 탭에 번호를 부여한다(setTab).
+그럼 각 탭 을 눌렀을때 filtText가 특정 문자열로 변경된다.
+미리 적용해놓은 filter에 따라서 각 li 태그가 보여지기도 하고 가려지기도 할 것이다.
+
+
+
+## Excercise Code
+
+```
+<!DOCTYPE html>
+<html lang="en" ng-app="confusionApp">
+
+<head>
+     <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head
+         content must come *after* these tags -->
+    <title>Ristorante Con Fusion: Menu</title>
+        <!-- Bootstrap -->
+    <link href="../bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../bower_components/bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="../bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href="styles/bootstrap-social.css" rel="stylesheet">
+    <link href="styles/mystyles.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="row row-content" ng-controller="menuController as menuCtrl">
+            <div class="col-xs-12">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" ng-class="{active:menuCtrl.isSelected(1)}">
+                        <a ng-click="menuCtrl.select(1)" aria-controls="all menu" role="tab">The Menu</a>
+                    </li>
+                    <li role="presentation" ng-class="{active:menuCtrl.isSelected(2)}">
+                        <a ng-click="menuCtrl.select(2)" aria-controls="appetizers" role="tab">Appetizers</a>
+                    </li>
+                    <li role="presentation" ng-class="{active:menuCtrl.isSelected(3)}">
+                        <a ng-click="menuCtrl.select(3)" aria-controls="mains" role="tab">Mains</a>
+                    </li>
+                    <li role="presentation" ng-class="{active:menuCtrl.isSelected(4)}">
+                        <a ng-click="menuCtrl.select(4)" aria-controls="desserts" role="tab">Desserts</a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <ul class="media-list tab-pane fade in active">
+                        <li class="media" ng-repeat="dish in menuCtrl.dishes | filter:menuCtrl.filtText">
+                            <div class="media-left media-middle">
+                                <a href="#">
+                                <img class="media-object img-thumbnail" ng-src="{{dish.image}}" alt="Uthapizza">
+                                </a>
+                            </div>
+                            <div class="media-body">
+                                <h2 class="media-heading">{{dish.name}}
+                                    <span class="label label-danger">{{dish.label}}</span>
+                                    <span class="badge">{{dish.price | currency}}</span>
+                                </h2>
+                                <p>{{dish.description}}</p>
+                                <!-- <p>Comment: {{dish.comment}}</p> -->
+                                <!-- <p>Type your comment: -->
+                                    <!-- <input type="text" ng-model="dish.comment"> -->
+                                </p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script>
+        var app = angular.module('confusionApp', []);
+        app.controller('menuController', function(){
+
+            this.tab = 1;
+            this.filtText = '';
+
+            var dished = [
+                              {
+                                name: 'Uthapizza',
+                                image: 'images/uthapizza.png',
+                                category: 'mains',
+                                label: 'Hot',
+                                price: '4.99',
+                                description:'A unique combination of Indizan Uthappam (pancake) and Italian pizza, topped with Cerignola olives, ripe vine cherry tomatoes, Vidalia onion, Guntur chillies and Buffalo Paneer',
+                                comment: 'aaaaaaa'
+                              },
+                              {
+                                name: 'Uthapizza2',
+                                image: 'images/zucchipakoda.png',
+                                category: 'mains',
+                                label: '',
+                                price: '4.99',
+                                description:'A unique combination of Indizan Uthappam (pancake) and Italian pizza, topped with Cerignola olives, ripe vine cherry tomatoes, Vidalia onion, Guntur chillies and Buffalo Paneer',
+                                comment: ''
+                              },
+                              {
+                                name: 'Uthapizza3',
+                                image: 'images/vadonut.png',
+                                category: 'appetizer',
+                                label: 'New',
+                                price: '4.99',
+                                description:'A unique combination of Indizan Uthappam (pancake) and Italian pizza, topped with Cerignola olives, ripe vine cherry tomatoes, Vidalia onion, Guntur chillies and Buffalo Paneer',
+                                comment: ''
+                              },
+                              {
+                                name: 'Uthapizza4',
+                                image: 'images/elaicheesecake.png',
+                                category: 'dessert',
+                                label: '',
+                                price: '4.99',
+                                description:'A unique combination of Indizan Uthappam (pancake) and Italian pizza, topped with Cerignola olives, ripe vine cherry tomatoes, Vidalia onion, Guntur chillies and Buffalo Paneer',
+                                comment: ''
+                              },
+                            ];
+            this.dishes = dished;
+
+            this.select = function(setTab) {
+                this.tab = setTab;
+
+                if (setTab === 2)
+                    this.filtText = "appetizer";
+                else if (setTab === 3)
+                    this.filtText = "mains"
+                else if (setTab === 4)
+                    this.filtText = "dessert"
+                else 
+                    this.filtText = "";
+            }
+
+            this.isSelected = function(checkTab) {
+                return (this.tab === checkTab)
+            }
+        });
+    </script>
+</body>
+
+</html>
+```
+
+
