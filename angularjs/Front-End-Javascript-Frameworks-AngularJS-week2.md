@@ -1,7 +1,7 @@
-# Task Runners, Angular Scope, Forms and Form Validation
+## Task Runners, Angular Scope, Forms and Form Validation
 
 
-## Web Tools: Grunt and Gulp
+### Web Tools: Grunt and Gulp
 
 #### Task-Runners
 
@@ -16,7 +16,7 @@ Javascript의 경우에는, JSHint를 이용한 자바스크립트 에러체킹�
 위에서 살펴본 반복적인 태스크를 Grunt, Gulp 등의 Task Runners를 이용해 자동화 할 수 있다. 
 
 
-## Grunt
+### Grunt
 
 Grunt는 configuration 기반의 태스크 러너이다. 우선 install 하자. -g 옵션을 주어 global하게 사용할 수 있도록 한다.
 
@@ -307,4 +307,159 @@ module.exports = function (grunt) {
 	grunt.registerTask('serve', ['build','connect:dist','watch']);
 	grunt.registerTask('default', ['build']);
 };
+```
+
+
+
+### Gulp
+
+Grunt는 Configuration기반의 태스크 러너였다면, 반대로 Gulp는 코드 기반의 태스크 러너 이다. Gulp는 Grunt 처럼 태스크를 실행하기 위한 중간 파일을 만들지 않고 NodeJS streams을 사용하여 복잡한 파이프라인 형태로 실행된다(무슨 말이지는 잘 모르겠지만, 예제를 보면 알겠지). 
+
+일단 global로 설치하자.
+
+```
+npm install -g gulp
+```
+
+Grunt 예제와 비슷하게 동작하는 예제를 실행하기 위해 다음과 같은 plugins 을 설치한다.
+
+```
+npm install 
+	gulp-jshint jshint-stylish
+	gulp-imagemin gulp-concat gulp-uglify gulp-minify-css gulp-usemin
+	gulp-cache gulp-rev gulp-rename gulp-notify
+	browser-sync del
+--save-dev
+```
+
+플러그인을 로드하는 방법은 다음과 같다.
+직접 각 플러그인을 로드해도 되지만, package.json 파일 형태로 저장할 수도 있다.
+
+```
+var gulp = require('gulp'),
+  jshint = require('gulp-jshint')
+  sylish = require('jshint-stylish')
+  
+  ...
+
+
+```
+
+#### Gulp Streams
+
+Gulp Streams는 nodeJS streams를 사용하여 파이프라인을 구성하는데, 파이프 라인이란 하나의 function의 결과가 다음 function으로 그대로 전달되는 연쇄적인 명령셋을 말한다. 예제를 살펴보자
+
+```
+gulp.task('jshint', function() {
+	gulp.src('app/scripts/**/*.js')
+	.pipe(jshint())
+	.pipe(jshint.reporter(stylish));
+});
+```
+
+우선 걸프 태스크를 생성하고 그 안에서 소스를 선택하고 jshint를 생성하고 스타일을 적용해주는 일련의 명령들을 pipe라는 function을 이용하여 연결하였다.
+
+Watch 태스크 예제를 살펴보자
+
+```
+gulp.task('watch', ['browser-sync'], function() {
+	gulp.watch('{app/scripts/**/*.js, app/style/**/*.css, app/**/*.html}', ['usemin']);
+	gulp.watch('app/images/**/*', ['imagemin']);
+});
+```
+
+태스크의 두번째 인자를 보면, browser-sync가 대괄호로 묶여져 있다. 이 의미는 browser-sync는 watch 태스크에 종속적이라는 말이다. 즉, watch 태스크가 실행되면 자동으로 browser-sync가 실행된다.
+
+#### Default Task
+
+```
+gulp.task('default', ['clean'], function() {
+	gulp.start('usemin', 'imagemin', 'copyfonts');
+});
+```
+
+default 태스크는 콘솔창에서 gulp 라고 입력하면 실행되는 태스크이다. clean 태스크가 연쇄적으로 발생하게 되고, 내부에서는 서로 dependency가 없는 usemin, imagemin, copyfonts가 동시에 실행된다.
+
+
+#### gulpfile.js
+
+콤마(,)와 띄어쓰기에 유의해야 한다. 
+
+```
+var gulp = require('gulp'),
+	minifycss = require('gulp-minify-css'),
+	jshint = require('gulp-jshint'),
+	stylish = require('jshint-stylish'),
+	uglify = require('gulp-uglify'),
+	usemin = require('gulp-usemin'),
+	imagemin = require('gulp-imagemin'),
+	rename = require('gulp-rename'),
+	concat = require('gulp-concat'),
+	notify = require('gulp-notify'),
+	cache = require('gulp-cache'),
+	changed = require('gulp-changed'),
+	rev = require('gulp-rev'),
+	browserSync = require('browser-sync'),
+	del = require('del');
+
+gulp.task('jshint', function() {
+	return gulp.src('app/scripts/**/*.js')
+		.pipe(jshint())
+		.pipe(jshint.reporter(stylish));
+});
+
+gulp.task('usemin', ['jshint'], function() {
+	return gulp.src('./app/menu.html')
+		.pipe(usemin({
+			css:[minifycss(),rev()],
+			js: [uglify(),rev()]
+		}))
+		.pipe(gulp.dest('dist/'));
+});
+
+gulp.task('imagemin', function() {
+	return del(['dist/images']), gulp.src('app/images/**/*')
+		.pipe(cache(imagemin({ optimizationLevel: 3, progressive: true, interlaced: true })))
+		.pipe(gulp.dest('dist/images'))
+		.pipe(notify({ message: 'Images task complete' }));
+});
+
+gulp.task('clean', function() {
+	return del(['dist'])
+});
+
+gulp.task('copyfonts', ['clean'], function() {
+	gulp.src('./bower_components/font-awesome/fonts/**/*.{ttf,woff,eof,svg}*')
+		.pipe(gulp.dest('./dist/fonts'));
+	gulp.src('./bower_components/bootstrap/dist/fonts/**/*.{ttf,woff,eof,svg}*')
+		.pipe(gulp.dest('./dist/fonts'));
+});
+
+gulp.task('watch', ['browser-sync'], function() {
+	gulp.watch('{app/scripts/**/*.js,app/styles/**/*.css,app/**/*.html}', ['usemin']);
+	gulp.watch('app/images/**/*', ['imagemin']);
+});
+
+gulp.task('browser-sync', ['default'], function() {
+	var files = [
+		'app/**/*.html',
+		'app/styles/**/*.css',
+		'app/images/**/*.png',
+		'app/scripts/**/*.js',
+		'dist/**/*'
+	];
+
+	browserSync.init(files, {
+		server: {
+			baseDir: "dist",
+			index: "menu.html"
+		}
+	});
+
+	gulp.watch(['dist/**']).on('change', browserSync.reload);
+});
+
+gulp.task('default', ['clean'], function() {
+	gulp.start('usemin', 'imagemin', 'copyfonts');
+});
 ```
