@@ -4,7 +4,11 @@
 		module="til_2.10"
 		revision="0.1-SNAPSHOT"
 		status="integration"
+<<<<<<< HEAD
 		publication="20160707105822"
+=======
+		publication="20160708000852"
+>>>>>>> 82cdd72a7621126777b8597a70f85990fad58f96
 	>
 		<description>
 		til
@@ -32,7 +36,12 @@
 		<artifact name="til_2.10" type="doc" ext="jar" conf="docs" e:classifier="javadoc"/>
 	</publications>
 	<dependencies>
+<<<<<<< HEAD
 		<dependency org="org.scala-lang" name="scala-compiler" rev="2.10.6" conf="scala-tool->default,optional(default)"/>
 		<dependency org="org.scala-lang" name="scala-library" rev="2.10.6" conf="scala-tool->default,optional(default);compile->default(compile)"/>
+=======
+		<dependency org="org.scala-lang" name="scala-compiler" rev="2.10.4" conf="scala-tool->default,optional(default)"/>
+		<dependency org="org.scala-lang" name="scala-library" rev="2.10.4" conf="scala-tool->default,optional(default);compile->default(compile)"/>
+>>>>>>> 82cdd72a7621126777b8597a70f85990fad58f96
 	</dependencies>
 </ivy-module>
