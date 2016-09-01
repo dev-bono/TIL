@@ -113,3 +113,146 @@ angular.module('confusionApp')
 
 service와 factory의 사용법은 완전히 같다. 하지만 차이가 있는데, factory는 객체를 생성해서 리턴을 한다. 하지만 service의 경우에는 service() 함수가 호출되면서 기본 생성자가 만들어진다. 그래서 service 코드 내에서 this로 바로 접근이 가능하기 때문에 별도로 객체를 만들어 리턴해줄 필요가 없다.
 
+#### exercise
+
+app.js
+
+모든 컨트롤러 코드는 controllers.js로 이동한다.
+
+```
+'use strict';
+
+angular.module('confusionApp', [])
+
+;
+```
+
+controllers.js
+
+controller 코드는 모두 controllers.js로 이동하였고, 데이터를 가져오는 부분은 services.js로 이동
+
+```
+'use strict';
+
+angular.module('confusionApp')
+    .controller('MenuController', ['$scope', 'menuFactory', function($scope, menuFactory){
+
+        $scope.tab = 1;
+        $scope.filtText = '';
+        $scope.showDetails = false;
+
+        $scope.dishes = menuFactory.getDishes();
+
+        ...
+
+    }])
+
+    ...
+
+    .controller('DishDetailController', ['$scope', 'menuFactory', function($scope, menuFactory) {
+        var dish = menuFactory.getDish(3);        
+        $scope.dish = dish;
+        
+    }])
+
+    ...
+
+    ;
+```
+
+services.js
+
+데이터 관련 파일은 모두 이쪽으로 이동 (factory / service 메서드 이용)
+아래는 service를 사용한 예제임.
+그리고 dishdetail.html에서 사용하던 comment를 dishes에 합쳐서 사용
+각 dish의 comment 속성에 리스트로 선언
+
+```
+'use strict';
+
+angular.module('confusionApp')
+		.service('menuFactory', function() {
+	        var dishes = [
+				{
+					name: 'Uthapizza',
+					image: 'images/uthapizza.png',
+					category: 'mains',
+					label: 'Hot',
+					price: '4.99',
+					description:'A unique combination of Indizan Uthappam (pancake) and Italian pizza, topped with Cerignola olives, ripe vine cherry tomatoes, Vidalia onion, Guntur chillies and Buffalo Paneer',
+					comment: 'aaaaaaa'
+				},
+
+				...
+			];
+
+			this.getDishes = function() {
+				return dishes;
+			};
+
+			this.getDish = function(index) {
+				return dishes[index];
+			};
+
+		});
+
+```
+
+### Angular Templates
+
+Angular Tmeplate은 HTML과 함께 쓰여진다. 동적 뷰(Dynamic View)를 만들기 위해서는 Angular Template의 역할이 반드시 필요하다.
+
+Angular Template은 Angular JS의 여러 요소에 사용되었는데, Directives, Markup:{{expression}}, Filter, Form controls 등이 대표적이다.
+
+#### ng-include directive
+
+external HTML 조각을 HTML 내에 포함하기 위해 directive다.
+사용방법은 간단하다. 
+
+```
+<div ng-include="'menu.html'"></div>
+<ng-include src="'menu.html'"></ng-include>
+```
+
+두가지 방법이 있다. 태그의 속성으로 사용하거나 ng-include 태그를 사용하는 것이다.
+
+그리고 한가지 알아두어야 할 점이 있다. ng-include directive를 사용하면 ng-controller를 사용할 때처럼 새로운 scope가 생성된다는 점이다.
+
+#### exercise
+
+index.html
+
+header, footer, js, css 등을 import하는 부분을 모두 index.html에 둔다. 그리고 필요한 부분에 menu.html, dishdetail.html, contactus.html 등의 파일을 ng-include를 이용하여 포함시킨다.
+
+```
+<!DOCTYPE html>
+<html lang="en" ng-app="confusionApp">
+<head>
+
+...
+
+</head>
+
+<body>
+    <header class="jumbotron">
+
+    	...
+
+    </header>
+
+    <ng-include src="'menu.html'"></ng-include>
+    
+    <footer class="row-footer">
+    	
+    	...
+
+    </footer>
+
+    ...
+
+</body>
+</html>
+```
+
+single page application을 구현하기 위해서는 데이터가 변함에 따라서 ng-include를 이용하여 동적으로 뷰를 전환할 필요가 있다. 다음 강의를 통해서 각 html 페이지끼리 이동하는 방법에 대해서 배워보도록 하자.
+
