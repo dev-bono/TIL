@@ -25,3 +25,48 @@ JSON 데이터 구조를 간단히 살펴보자
 }
 ```
 
+### Client-Servier Communication using $http
+
+#### Angular $http
+
+$http는 브라우저에서 서버와의 통신을 위한 가장 핵심적인 서비스로 HTTP protocol을 사용한다. 아마 내부적으로는 AJAX 통신을 할것이기 때문에 비동기로 처리될 것이다.
+
+#### Promise
+
+자바스크립트에서 Promise란 비동기 통신이 완료된 후에 상태에 따라 특정 콜백을 리턴해 줄 것이라는 일종의 약속 같은 것을 말한다. $http 서비스 역시 프로미스를 리턴한다. 패턴은 아래와 같다.
+
+```
+$http({method: 'GET', url:'/dishes'})
+	.then(function() { ... }, function() { ... });
+```
+
+then 뒤에는 두개의 function이 파라미터로 들어가 있다. 첫번째는 request가 성공했을 때 발생하는 함수이고, 두번째는 요청이 실패했을때 발생하는 함수이다. 보통 AJAX 통신을 사용할 때, 'success', 'error' 속성을 사용하는 것과 비슷하다.
+
+#### HTTP Response
+
+요청의 결과로 response라는 object가 서버로부터 넘어온다. 이때 reponse 객체에는 다음과 같은 속성들이 포함되어 있다.
+
+* response.data : 메세지 바디를 포함하느 string / object
+* response.status : 상태 코드 (200, 400 등)
+* response.headers : 헤더정보
+* response.config : configuration object
+* response.statusText : response 상태 텍스트 값 
+
+#### ng-if directive
+
+html 코드를 작성할 때 해당 dom을 보여줄지 말지를 결정하기 위해 ngIf directive를 사용할 수 있다. 사용법은 간단하다.
+
+```
+<div class="col-xs-12" ng-if="!showMenu">
+	<h3>{{message}}</h3>
+</div>
+```
+
+showMenu가 true면 ng-if는 false가 되므로 해당 message는 안보일것이고, showMenu가 false면 반대로 message가 나타날 것이다.
+
+
+
+
+
+
+
