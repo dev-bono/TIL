@@ -116,6 +116,89 @@ GET 메소드는 클라이언트가 서버에게 어떤 리소스를 요청하�
 REST는 상태를 저장하지 않다. 매 요청바다 항상 새로운 요청이 발생하게 된다. 그렇기 때문에 클라이언트측에서 요청에 따라 상태가 변화하는 것을 트래킹하기 위해서는 클라이언트 자신이 요청 전의 상태를 기억하고 있어야 한다.
 
 
+### Clint-Server Communication using $resource
+
+#### Angular ngResource 
+
+ngResource 모듈은 restful API 서버와 통신하기 위해 $http 보다 고수준의 추상화를 제공한다(흠...). angular core가 아니기 때문에 따로 설치해 줘야 한다. 
+
+```
+bower install angular-resource -S
+```
+
+DI를 이용해서 ngResource를 사용할 수 있다.
+
+```
+angular.module('confusionApp', ['ui.router', 'ngResource'])
+```
+
+#### Angular $resource Service
+
+$http에 비해 $resource는 훨씬 편리하게 사용할 수 있다. 우선 사용 예시를 살펴보기 전에 $resource 서비스를 사용하기 위해서는 사용하고자하는 service나 controller에 DI로 추가한다.
+
+```
+.service('menuFactory', ['$resouce', 'baseURL', function($resource, baseURL) {
+	
+	...
+
+	$scope.dishes = $resouce(baseURL + "dishes/:id", null, {'update':{method:'PUT'}}).query();
+	
+	var dish = $resource(baseURL + "dishes/:id", null, {'update':{method:'PUT'}}).get({id:0}, function() {
+			dish.name = "dovanut";
+			dish.$save();
+		})
+	...
+
+}])
+```
+
+$resource의 기본 action들은 다음과 있다.
+
+> {'get':{method:'GET'},
+> 'save':{method:'POST'},
+> 'query':{method:'GET', isArray:true},
+> 'remove':{method:'DELETE'},
+> 'delete':{method:'DELETE'}};
+
+action을 커스텀으로 만들 수도 있는데, 위의 예제에서 본 것 처럼 update라는 메서드를 HTTP PUT 메서드로 정의해 놓으면 update() 함수를 사용할 수 있다. 다음의 예제를 보자
+
+```
+$resource(baseURL+"dishes/:id", null, {'update':{method:'PUT'}}).update({id:$scope.dish.id},$scope.dish);
+```
+
+
+### Angular Testing
+
+Angular 테스팅은 unit 테스트를 제공한다. unit 테스트란 각 부분의 독립된 로직을 테스트하는 기법을 말하는데, Angluar에서는 작성한 controller, filter, factory, service 등의 모듈을 개별적으로 검사할 수 있다. 그렇기 때문에 angular로 작성한 코드는 DOM과는 완전히 분리되어 테스트할 수가 있다.
+
+#### Jasmine
+
+angularJS를 테스트하기위해 Behavior driven development 프레임웍인 Jasmine을 이용한다. 구체적으로 그룹 테스트를 위해 "describe" 함수를 이용하고, 개별테스트를 위해서 "it" 함수를 이용한다.
+
+다음의 예를 보자
+
+```
+describe('Controller:MenuController', function() {
+	it('should create "dishes" with 2 dishes fetched from xhr', function() {
+		// showMenu가 true이길 기대함
+		expect(scope.showMenu).toBeTruthy();
+		// dishes가 정의됨을 기대함
+		expect(scope.dishes).toBeDefined();
+		// dishes의 개수가 2개임을 기대함
+		expect(scope.dishes.length).toBe(2);
+	});
+});
+```
+
+describe는 MenuController를 테스트 한다는것을 말한다. 두번째 it은 xhr로부터 dishes가 2 dishes가 fetched된 dishes가 만들어질 것이라는 걸 말하고 두번째 인자에 들어간 함수 내에서는 expect 함수로 각각의 조건이 만족하는지를 체크한다.
+
+#### Karma
+
+카르마는 자바스크립트 기반 command line tool이다(NodeJS application). 카르마를 이용하면 Jasmine으로 테스트한 결과를 브라우저로 가져와 쉽게 확인할 수 있다.
+
+#### angular-mocks
+
+ngMock 모듈을 이용하면 테스트의 결과를 의존성을 가지는 다른 서비스나 컨트롤러에 미리 적용해 볼 수 있다. 한가지 예로 $httpBackend를 이용하면 서버에 XHR 리퀘스트를 테스트로 날려볼수도 있다.
 
 
 
