@@ -200,5 +200,89 @@ describe는 MenuController를 테스트 한다는것을 말한다. 두번째 it�
 
 ngMock 모듈을 이용하면 테스트의 결과를 의존성을 가지는 다른 서비스나 컨트롤러에 미리 적용해 볼 수 있다. 한가지 예로 $httpBackend를 이용하면 서버에 XHR 리퀘스트를 테스트로 날려볼수도 있다.
 
+#### exercise
 
+우선 필요한 모듈들을 install 한다. 글로벌로 설치하는 건 상관없지만 그 외에는 conFusion 폴더 내에서 설치하도록 하자.
 
+```
+# 자스민 코어 설치
+sudo npm install jasmine-core --save-dev
+
+# karma-jasmine 설치
+sudo npm install karma-jasmine --save-dev
+
+# 카르마, 클라이언트 설치
+sudo npm install karma --save-dev
+sudo npm install karma-cli -g
+sudo npm install karma-cli --save-dev
+
+# 카르마를 통한 결과를 크롬에 보여주기 위한 모듈 설치
+sudo npm install phantomjs karma-phantomjs-launcher karma-chrome-launcher --save-dev
+
+# angular mocks 설치
+bower install angular-mocks -S
+```
+
+/conFusion/test 폴더를 생성하고 karma.conf.js 파일을 생성한다.
+
+```
+module.exports = function(config) {
+	config.set({
+		basePath: '../',
+		frameworks: ['jasmine'],
+		// list of files, 테스트하려는 파일 목록
+		files: [
+			'bower_components/angular/angular.js',
+			'bower_components/angular-resource/angular-resource.js',
+			'bower_components/angular-ui-router/release/angular-ui-router.js',
+			'bower_components/angular-mocks/angular-mocks.js',
+			'app/scripts/*.js',
+			'test/unit/**/*.js'
+		],
+		// list of files to exclude, 테스트 제외 목록
+		exclude: [
+			'test/protractor.conf.js', 'test/e2e/*.js'
+		],
+		preprocessors: {
+
+		},
+		// test results reporter to use
+		// possible values: 'dots', 'progress'
+		reporters: ['progress'],
+		port: 9876,
+		// colors in the output (reporters and logs)
+		colors: true,
+		// config.LOG_DISALBE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
+		logLevel: config.LOG_INFO,
+		// 파일 변경시 auto reload
+		autoWatch: true,
+		// browser, available browser launchers
+		browsers: ['Chrome', 'PhantomJS', 'PhantomJS_custom'],
+		customLaunchers: {
+			'PhantomJS_custom': {
+				base: 'PhantomJS',
+				options: {
+					windowName: 'my-window',
+					settings: {
+						webSecurityEnabled: false
+					},
+				},
+				flags: ['--load-images=true'],
+				debug: true
+			}
+		},
+		phantomjsLauncher: {
+			// ResourceError 발생시 phantomjs 종료, 비정상 종료시 유용함
+			exitOnResourceError: true
+		},
+		// Continuous Integration mode
+		// if true, Karma captures browsers, runs the tests and exits
+		singleRun: false,
+		// Concurrency level
+		concurrency: Infinity
+
+	})
+}
+```
+
+conFusion/test/unit/menucontroller.js 파일을 생성해서 unit 테스트를 실행한다.
